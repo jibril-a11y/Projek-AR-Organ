@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AR Marker - Organ AR</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="assets/css/variables.css" />
+    <link rel="stylesheet" href="assets/css/main.css" />
+    <link rel="stylesheet" href="assets/css/ar.css" />
+    <!-- A-Frame harus dimuat sebelum komponen MindAR -->
+    <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
+  </head>
+  <body>
+    <nav id="navbar" class="navbar"></nav>
+    <div class="ar-stage">
+      <div id="ar-container"></div>
+      <div id="ar-status" class="ar-status hidden"></div>
+      <div id="ar-controls" class="ar-controls hidden"></div>
+      <div id="ar-overlay" class="ar-overlay"></div>
+      <div id="ar-setup" class="ar-setup"></div>
+    </div>
+    <div id="toast-host"></div>
+    <script type="module" src="assets/js/pages/marker.js"></script>
+  </body>
+</html>

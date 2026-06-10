@@ -1,0 +1,73 @@
+/* Gaya untuk halaman AR (marker, markerless, scan). */
+
+.ar-stage {
+  position: relative;
+  width: 100%;
+  height: calc(100vh - 64px);
+  overflow: hidden;
+  background: #0a1622;
+}
+
+#ar-container {
+  position: absolute;
+  inset: 0;
+}
+
+/* Video & canvas yang disuntikkan MindAR / Three.js mengisi penuh. */
+#ar-container video,
+#ar-container canvas,
+#ar-container a-scene,
+#ar-container .a-canvas {
+  position: absolute !important;
+  inset: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover;
+}
+#ar-container video { z-index: 0 !important; }
+#ar-container canvas,
+#ar-container .a-canvas { z-index: 1 !important; background: transparent !important; }
+
+/*
+  PENTING: kontrol UI harus berada DI ATAS canvas AR (z-index 1),
+  jika tidak, tombol seperti "Berhenti" tidak bisa diklik karena
+  tertutup oleh canvas. Ini perbaikan bug tombol berhenti.
+*/
+.ar-status, .ar-controls, .ar-overlay, .ar-setup {
+  z-index: 30;
+}
+
+.ar-setup {
+  position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+  padding: 24px;
+  background: radial-gradient(900px 500px at 50% 0%, rgba(50, 163, 205, 0.18), transparent 60%), #0a1622;
+}
+.ar-setup .card { max-width: 460px; width: 100%; }
+
+.ar-controls { position: absolute; top: 16px; right: 16px; display: flex; gap: 10px; }
+.ar-status {
+  position: absolute; top: 16px; left: 16px;
+  background: rgba(10, 22, 34, 0.7); color: #fff; padding: 8px 16px;
+  border-radius: 999px; font-weight: 700; font-size: 0.85rem;
+}
+
+.ar-overlay { position: absolute; left: 16px; bottom: 16px; right: 16px; display: flex; gap: 12px; flex-wrap: wrap; pointer-events: none; }
+.ar-info-card {
+  pointer-events: auto; background: rgba(255, 255, 255, 0.94); backdrop-filter: blur(8px);
+  border-radius: var(--radius-md); box-shadow: var(--shadow-lg); padding: 16px 18px;
+  max-width: 360px; border-top: 4px solid var(--c-mint); animation: pop 0.25s ease;
+}
+.ar-info-card h3 { margin: 0 0 8px; color: var(--c-ink-deep); }
+.ar-info-card .section-label {
+  font-size: 0.75rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em;
+  color: var(--c-sky-deep); margin: 10px 0 4px;
+}
+.ar-info-card ul { margin: 0; padding-left: 18px; }
+
+.scan-hint { display: inline-flex; align-items: center; gap: 8px; }
+.scan-dot { width: 9px; height: 9px; border-radius: 50%; background: var(--c-mint); animation: pulse 1.2s infinite; }
+@keyframes pulse { 0%, 100% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.6); opacity: 0.4; } }
+
+/* Wadah pemindai QR */
+#qr-reader { width: 100%; max-width: 480px; margin: 0 auto; }
+#qr-reader video { border-radius: var(--radius-md); }

@@ -1,0 +1,39 @@
+:root {
+  --c-sky: #32a3cd;
+  --c-ink: #3253cd;
+  --c-mint: #2fd0aa;
+
+  --c-sky-soft: #e6f4fa;
+  --c-ink-soft: #e6ebfb;
+  --c-mint-soft: #e2faf3;
+
+  --c-sky-deep: #1f7da3;
+  --c-ink-deep: #243c99;
+  --c-mint-deep: #1fa382;
+
+  --grad-primary: linear-gradient(135deg, var(--c-sky) 0%, var(--c-ink) 100%);
+  --grad-accent: linear-gradient(135deg, var(--c-mint) 0%, var(--c-sky) 100%);
+  --grad-page: radial-gradient(1200px 600px at 10% -10%, var(--c-sky-soft) 0%, transparent 55%),
+    radial-gradient(1000px 600px at 110% 0%, var(--c-mint-soft) 0%, transparent 50%),
+    linear-gradient(180deg, #f7fbfe 0%, #eef5fb 100%);
+
+  --c-bg: #f4f9fd;
+  --c-surface: #ffffff;
+  --c-text: #16314a;
+  --c-text-soft: #5c7185;
+  --c-border: #d6e6f0;
+
+  --c-danger: #e0506b;
+  --c-danger-soft: #fbe7eb;
+
+  --shadow-sm: 0 2px 8px rgba(50, 83, 205, 0.08);
+  --shadow-md: 0 10px 30px rgba(50, 83, 205, 0.12);
+  --shadow-lg: 0 24px 60px rgba(50, 83, 205, 0.18);
+
+  --radius-sm: 10px;
+  --radius-md: 16px;
+  --radius-lg: 24px;
+
+  --font-display: "Fredoka", "Trebuchet MS", sans-serif;
+  --font-body: "Nunito", "Segoe UI", sans-serif;
+}
