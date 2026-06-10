@@ -18,7 +18,10 @@ import { el } from "../modules/ui.js";
     { href: "demo.html", title: "Demo 3D", desc: "Jelajahi semua model organ." },
   ];
   if (isEditor(profile)) {
-    cards.push({ href: "admin.html", title: "Panel Admin", desc: "Kelola organ, QR, model, dan pengguna." });
+    cards.push({ href: "guru.html", title: "Ruang Guru", desc: "Kelola organ, deskripsi, fungsi, model, dan QR." });
+  }
+  if (profile.role === "admin") {
+    cards.push({ href: "admin.html", title: "Ruang Admin", desc: "Kelola pengguna dan peran." });
   }
 
   const grid = el("div", { class: "card-grid mt-24" });

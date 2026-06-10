@@ -56,8 +56,9 @@ export function isEditor(profile) {
 }
 
 // Penjaga halaman: arahkan ke login bila belum masuk.
-// Bila allowedRoles diberikan, arahkan ke beranda bila peran tidak cocok.
-export async function requireAuth(allowedRoles = null) {
+// Bila allowedRoles diberikan, arahkan ke halaman 'redirectTo' bila peran
+// tidak cocok (default: index.html).
+export async function requireAuth(allowedRoles = null, redirectTo = "index.html") {
   const session = await getSession();
   if (!session) {
     window.location.replace("login.html");
@@ -65,7 +66,7 @@ export async function requireAuth(allowedRoles = null) {
   }
   const profile = await getProfile();
   if (allowedRoles && !allowedRoles.includes(profile.role)) {
-    window.location.replace("index.html");
+    window.location.replace(redirectTo);
     return null;
   }
   return profile;

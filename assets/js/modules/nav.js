@@ -12,7 +12,8 @@ const LINKS = [
   { href: "scan.html", label: "Scan QR" },
   { href: "ar-marker.html", label: "AR Marker" },
   { href: "demo.html", label: "Demo 3D" },
-  { href: "admin.html", label: "Admin", editorOnly: true },
+  { href: "guru.html", label: "Ruang Guru", editorOnly: true },
+  { href: "admin.html", label: "Ruang Admin", adminOnly: true },
 ];
 
 export function renderNav(profile, activeHref) {
@@ -22,6 +23,7 @@ export function renderNav(profile, activeHref) {
   const links = el("div", { class: "nav-links" });
   LINKS.forEach((link) => {
     if (link.editorOnly && !isEditor(profile)) return;
+    if (link.adminOnly && profile.role !== "admin") return;
     links.appendChild(
       el("a", {
         href: link.href,
