@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Admin - Organ AR</title>
+    <title>Ruang Admin - Organ AR</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet" />
@@ -13,27 +13,9 @@
   <body>
     <nav id="navbar" class="navbar"></nav>
     <div class="container">
-      <h1 class="page-title">Panel Admin</h1>
-      <p class="muted">Kelola organ, QR marker, kompilasi marker, dan pengguna.</p>
-
-      <div class="admin-tabs">
-        <button class="tab-btn active" data-target="panel-organs">Organ</button>
-        <button class="tab-btn" data-target="panel-compiler">Kompilasi Marker</button>
-        <button class="tab-btn" data-target="panel-users">Pengguna</button>
-      </div>
-
-      <section id="panel-organs" class="tab-panel active">
-        <div id="organ-form"></div>
-        <div id="organ-list" class="mt-24"></div>
-      </section>
-
-      <section id="panel-compiler" class="tab-panel">
-        <div id="compiler-root"></div>
-      </section>
-
-      <section id="panel-users" class="tab-panel">
-        <div id="users-root"></div>
-      </section>
+      <h1 class="page-title">Ruang Admin</h1>
+      <p class="muted">Kelola pengguna dan peran (mahasiswa, guru, admin).</p>
+      <div id="users-root" class="mt-24"></div>
     </div>
     <div id="toast-host"></div>
     <script type="module" src="assets/js/pages/admin.js"></script>
