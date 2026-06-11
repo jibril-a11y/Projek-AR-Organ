@@ -363,3 +363,47 @@ body { transition: padding-left 0.25s ease; }
 @media (max-width: 899px) {
   body.drawer-open { padding-left: 0; }
 }
+
+/* ---- Isi drawer ala portal: pencarian, seksi, menu ber-ikon ---- */
+.drawer-search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 12px;
+  margin-bottom: 14px;
+  background: var(--c-bg);
+  border: 1.5px solid var(--c-border);
+  border-radius: 999px;
+}
+.drawer-search svg { color: var(--c-text-soft); flex-shrink: 0; }
+.drawer-search input {
+  border: none;
+  background: transparent;
+  padding: 10px 0;
+  font-size: 0.9rem;
+}
+.drawer-search input:focus { outline: none; box-shadow: none; }
+
+.drawer-section {
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--c-text-soft);
+  margin: 4px 8px 8px;
+}
+
+.drawer-links a {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.drawer-links a svg { color: var(--c-sky-deep); flex-shrink: 0; }
+.drawer-links a:hover svg { color: var(--c-sky-deep); }
+.drawer-links a.active svg { color: #fff; }
+
+.drawer-empty {
+  color: var(--c-text-soft);
+  padding: 10px 14px;
+  font-size: 0.88rem;
+}
