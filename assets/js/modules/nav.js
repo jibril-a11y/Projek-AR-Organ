@@ -13,6 +13,7 @@
 */
 import { el } from "./ui.js";
 import { signOut, isEditor } from "./auth.js";
+import { getTheme, toggleTheme } from "./theme.js";
 
 const GROUPS = [
   {
@@ -50,6 +51,9 @@ const ICONS = {
   hamburger:
     '<line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/>',
   search: '<circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/>',
+  sun:
+    '<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>',
+  moon: '<path d="M21 12.8A9 9 0 1 1 11.2 3 7 7 0 0 0 21 12.8Z"/>',
 };
 
 function svgIcon(name, size = 20) {
@@ -157,12 +161,26 @@ export function renderNav(profile, activeHref) {
   const closeBtn = el("button", { class: "nav-toggle", "aria-label": "Tutup", title: "Tutup" }, [
     svgIcon("hamburger", 22),
   ]);
+  // Tombol ganti tema (gelap/terang).
+  const themeBtn = el("button", { class: "btn btn-ghost btn-block" });
+  const refreshThemeBtn = () => {
+    const dark = getTheme() === "dark";
+    themeBtn.innerHTML = "";
+    themeBtn.append(svgIcon(dark ? "sun" : "moon", 18), el("span", { text: dark ? "Mode Terang" : "Mode Gelap" }));
+  };
+  refreshThemeBtn();
+  themeBtn.addEventListener("click", () => {
+    toggleTheme();
+    refreshThemeBtn();
+  });
+
   const sidebar = el("aside", { class: "sidebar" }, [
     el("div", { class: "sidebar-head" }, [brandNode(), closeBtn]),
     searchBox,
     groupsWrap,
     el("div", { class: "drawer-user" }, [
       el("span", { class: "chip sky", text: `${name} (${roleLabel})` }),
+      themeBtn,
       el("button", {
         class: "btn btn-ghost btn-block",
         text: "Keluar",

@@ -14,7 +14,7 @@ import { toast } from "../modules/ui.js";
   renderNav(profile, "admin.html");
 
   try {
-    await initAdminUsers(document.getElementById("users-root"));
+    await initAdminUsers(document.getElementById("users-root"), profile.id);
   } catch (e) {
     toast(e.message, "error");
   }

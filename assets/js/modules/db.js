@@ -67,3 +67,9 @@ export async function setProfileRole(id, role) {
     await supabase.from("profiles").update({ role }).eq("id", id).select().single()
   );
 }
+
+// Hapus pengguna (memanggil fungsi RPC delete_user di database).
+export async function deleteUser(id) {
+  const { error } = await supabase.rpc("delete_user", { target: id });
+  if (error) throw new Error(error.message);
+}
