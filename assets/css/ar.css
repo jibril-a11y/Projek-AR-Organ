@@ -3,7 +3,8 @@
 .ar-stage {
   position: relative;
   width: 100%;
-  height: calc(100vh - 64px);
+  height: calc(100vh - 66px);
+  height: calc(100dvh - 66px); /* dvh: aman terhadap bilah browser HP */
   overflow: hidden;
   background: #0a1622;
 }
@@ -71,3 +72,48 @@
 /* Wadah pemindai QR */
 #qr-reader { width: 100%; max-width: 480px; margin: 0 auto; }
 #qr-reader video { border-radius: var(--radius-md); }
+
+/* ============================================================
+   Responsif HP untuk halaman AR
+   ============================================================ */
+@media (max-width: 720px) {
+  /* Navbar di HP bisa jadi dua baris, sesuaikan tinggi panggung. */
+  .ar-stage {
+    height: calc(100vh - 112px);
+    height: calc(100dvh - 112px);
+  }
+  .ar-controls { top: 12px; right: 12px; }
+  .ar-status { top: 12px; left: 12px; font-size: 0.78rem; padding: 6px 12px; }
+  .ar-overlay { left: 12px; right: 12px; bottom: 12px; }
+  .ar-info-card { max-width: calc(100vw - 24px); padding: 14px; }
+  .ar-setup { padding: 16px; }
+  #qr-reader { max-width: 100%; }
+}
+
+/* HP sangat kecil */
+@media (max-width: 380px) {
+  .ar-controls .btn { padding: 8px 12px; font-size: 0.8rem; }
+}
+
+/* Bilah kontrol model pada AR Markerless (geser/putar, ukuran, reset). */
+.ar-model-controls {
+  position: absolute;
+  left: 50%;
+  bottom: 18px;
+  transform: translateX(-50%);
+  z-index: 30;
+  display: flex;
+  gap: 8px;
+  padding: 8px;
+  background: rgba(10, 22, 34, 0.6);
+  backdrop-filter: blur(8px);
+  border-radius: 999px;
+  max-width: calc(100vw - 24px);
+  flex-wrap: nowrap;
+}
+.ar-model-controls .btn { white-space: nowrap; }
+
+@media (max-width: 380px) {
+  .ar-model-controls { gap: 6px; padding: 6px; }
+  .ar-model-controls .btn { padding: 8px 12px; font-size: 0.8rem; }
+}

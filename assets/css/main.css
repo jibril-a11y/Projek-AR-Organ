@@ -175,3 +175,80 @@ input:focus, select:focus, textarea:focus {
 .mt-8 { margin-top: 8px; } .mt-16 { margin-top: 16px; } .mt-24 { margin-top: 24px; }
 .hidden { display: none !important; }
 .text-center { text-align: center; }
+
+/* ============================================================
+   RESPONSIF UNTUK SEMUA HANDPHONE
+   ============================================================ */
+
+/* Tablet & HP besar */
+@media (max-width: 900px) {
+  .container { padding: 24px 16px 64px; }
+  .page-title { font-size: 1.6rem; }
+}
+
+/* HP umum */
+@media (max-width: 720px) {
+  /* Navbar: brand + pengguna di baris atas, tautan menggulung mendatar. */
+  .navbar {
+    gap: 10px;
+    padding: 10px 14px;
+    flex-wrap: wrap;
+  }
+  .brand { font-size: 1.05rem; }
+  .nav-user { margin-left: auto; gap: 8px; }
+  .nav-links {
+    order: 3;
+    flex: 1 1 100%;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 2px;
+    scrollbar-width: none;
+  }
+  .nav-links::-webkit-scrollbar { display: none; }
+  .nav-links a { white-space: nowrap; padding: 6px 12px; font-size: 0.9rem; }
+
+  /* Kartu jadi satu kolom penuh. */
+  .card-grid { grid-template-columns: 1fr; gap: 14px; }
+  .card { padding: 18px; }
+
+  /* Field bersisian menumpuk ke bawah. */
+  .row { flex-direction: column; gap: 0; }
+
+  /* Form sebaris (input + tombol) menumpuk agar tombol tidak terlalu sempit. */
+  .inline-form { flex-direction: column; }
+  .inline-form .btn { width: 100%; justify-content: center; }
+
+  /* Modal lebih ringkas. */
+  .modal { padding: 20px; border-radius: var(--radius-md); max-height: 92vh; }
+
+  /* Tab admin/guru bisa digulung mendatar. */
+  .admin-tabs { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; }
+  .admin-tabs::-webkit-scrollbar { display: none; }
+  .tab-btn { white-space: nowrap; flex-shrink: 0; }
+
+  /* Toast menyesuaikan lebar layar. */
+  #toast-host { left: 12px; right: 12px; bottom: 12px; }
+  .toast { max-width: 100%; }
+
+  /*
+    Cegah HP (terutama iOS) otomatis memperbesar saat fokus ke input:
+    ukuran font input minimal 16px.
+  */
+  input[type="text"], input[type="email"], input[type="password"],
+  input[type="number"], input[type="url"], select, textarea {
+    font-size: 16px;
+  }
+
+  /* Kartu auth pas di layar kecil. */
+  .auth-wrap { padding: 16px; }
+}
+
+/* HP kecil (<= 380px) */
+@media (max-width: 380px) {
+  .container { padding: 18px 12px 56px; }
+  .page-title { font-size: 1.4rem; }
+  .brand span:last-child { font-size: 1rem; }
+  .nav-user .chip { max-width: 120px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .btn { padding: 10px 16px; }
+}
