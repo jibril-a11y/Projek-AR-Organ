@@ -253,9 +253,19 @@ input:focus, select:focus, textarea:focus {
   .btn { padding: 10px 16px; }
 }
 
+
 /* ============================================================
-   BILAH ATAS + DRAWER (NAVIGASI POP-UP)
+   NAVIGASI: BILAH ATAS + SIDEBAR RAIL
+   - Desktop: rail ikon (default), melebar saat hover (overlay),
+     terkunci mendorong konten saat hamburger diklik (pinned).
+   - HP: sidebar tersembunyi, hamburger membukanya sebagai drawer.
    ============================================================ */
+:root {
+  --rail-w: 76px;
+  --panel-w: 280px;
+}
+
+/* --- Bilah atas --- */
 .topbar {
   position: sticky;
   top: 0;
@@ -269,7 +279,6 @@ input:focus, select:focus, textarea:focus {
   backdrop-filter: blur(12px);
   border-bottom: 1px solid var(--c-border);
 }
-
 .nav-toggle {
   display: inline-flex;
   align-items: center;
@@ -284,48 +293,81 @@ input:focus, select:focus, textarea:focus {
   cursor: pointer;
   transition: all 0.15s ease;
 }
-.nav-toggle:hover {
-  border-color: var(--c-sky);
-  color: var(--c-sky-deep);
-}
+.nav-toggle:hover { border-color: var(--c-sky); color: var(--c-sky-deep); }
 
-.drawer {
+/* --- Sidebar --- */
+.sidebar {
   position: fixed;
   top: 0;
   left: 0;
   bottom: 0;
-  width: 280px;
-  max-width: 84vw;
+  width: var(--panel-w);
   background: var(--c-surface);
   border-right: 1px solid var(--c-border);
-  box-shadow: var(--shadow-lg);
-  transform: translateX(-100%);
-  transition: transform 0.25s ease;
   z-index: 120;
   display: flex;
   flex-direction: column;
-  padding: 16px;
+  padding: 12px;
+  overflow-x: hidden;
   overflow-y: auto;
 }
-.drawer.open { transform: translateX(0); }
-
-.drawer-head {
+.sidebar-head {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  margin-bottom: 16px;
+  height: 44px;
+  padding: 0 4px;
+  margin-bottom: 12px;
+  white-space: nowrap;
 }
 
+.drawer-search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 12px;
+  margin-bottom: 14px;
+  background: var(--c-bg);
+  border: 1.5px solid var(--c-border);
+  border-radius: 999px;
+  white-space: nowrap;
+}
+.drawer-search svg { color: var(--c-text-soft); flex-shrink: 0; }
+.drawer-search input {
+  border: none;
+  background: transparent;
+  padding: 10px 0;
+  font-size: 0.9rem;
+  min-width: 0;
+}
+.drawer-search input:focus { outline: none; box-shadow: none; }
+
+.drawer-groups { display: flex; flex-direction: column; }
+.drawer-section {
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--c-text-soft);
+  margin: 12px 8px 6px;
+  white-space: nowrap;
+}
 .drawer-links { display: flex; flex-direction: column; gap: 4px; }
 .drawer-links a {
-  padding: 12px 14px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 11px 16px;
   border-radius: 12px;
   font-weight: 700;
   color: var(--c-text-soft);
-  transition: all 0.15s ease;
+  white-space: nowrap;
+  transition: background 0.15s ease, color 0.15s ease;
 }
+.drawer-links a svg { color: var(--c-sky-deep); flex-shrink: 0; }
 .drawer-links a:hover { background: var(--c-sky-soft); color: var(--c-sky-deep); }
 .drawer-links a.active { background: var(--grad-primary); color: #fff; box-shadow: var(--shadow-sm); }
+.drawer-links a.active svg { color: #fff; }
+.drawer-empty { color: var(--c-text-soft); padding: 10px 14px; font-size: 0.88rem; }
 
 .drawer-user {
   margin-top: auto;
@@ -334,6 +376,7 @@ input:focus, select:focus, textarea:focus {
   display: flex;
   flex-direction: column;
   gap: 10px;
+  white-space: nowrap;
 }
 
 .drawer-backdrop {
@@ -348,62 +391,95 @@ input:focus, select:focus, textarea:focus {
 }
 .drawer-backdrop.open { opacity: 1; visibility: visible; }
 
-/* ---- Drawer mendorong konten (layar lebar), bukan memblokir ---- */
-body { transition: padding-left 0.25s ease; }
-
+/* ====================== DESKTOP (rail + hover + pin) ====================== */
 @media (min-width: 900px) {
-  /* Saat drawer terbuka, konten utama bergeser ke kanan dan tetap bisa
-     dilihat serta diklik (mirip sidebar Claude). */
-  body.drawer-open { padding-left: 280px; }
-  /* Tidak ada latar gelap yang memblokir di layar lebar. */
+  body {
+    padding-left: var(--rail-w);
+    transition: padding-left 0.2s ease;
+  }
+  body.nav-pinned { padding-left: var(--panel-w); }
+
+  /* Default: rail sempit, hanya ikon. */
+  .sidebar {
+    width: var(--rail-w);
+    transition: width 0.2s ease, box-shadow 0.2s ease;
+  }
+  /* Hover: melebar sebagai overlay (konten tidak bergeser). */
+  .sidebar:hover { width: var(--panel-w); box-shadow: var(--shadow-lg); }
+  /* Terkunci: melebar permanen (konten sudah digeser oleh padding body). */
+  body.nav-pinned .sidebar { width: var(--panel-w); }
+
+  /* Teks & elemen lebar disembunyikan saat rail, muncul saat melebar. */
+  .sidebar .nav-label,
+  .sidebar .brand span:last-child,
+  .sidebar .drawer-search,
+  .sidebar .drawer-section,
+  .sidebar .drawer-user {
+    opacity: 0;
+    transition: opacity 0.15s ease;
+    pointer-events: none;
+  }
+  .sidebar .drawer-search,
+  .sidebar .drawer-section,
+  .sidebar .drawer-user {
+    max-height: 0;
+    margin-top: 0;
+    margin-bottom: 0;
+    padding-top: 0;
+    padding-bottom: 0;
+    overflow: hidden;
+    border: none;
+  }
+  .sidebar:hover .nav-label,
+  .sidebar:hover .brand span:last-child,
+  body.nav-pinned .sidebar .nav-label,
+  body.nav-pinned .sidebar .brand span:last-child {
+    opacity: 1;
+    pointer-events: auto;
+  }
+  .sidebar:hover .drawer-search,
+  body.nav-pinned .sidebar .drawer-search {
+    opacity: 1;
+    pointer-events: auto;
+    max-height: 60px;
+    margin-bottom: 14px;
+  }
+  .sidebar:hover .drawer-section,
+  body.nav-pinned .sidebar .drawer-section {
+    opacity: 1;
+    max-height: 40px;
+    margin: 12px 8px 6px;
+  }
+  .sidebar:hover .drawer-user,
+  body.nav-pinned .sidebar .drawer-user {
+    opacity: 1;
+    pointer-events: auto;
+    max-height: 200px;
+    padding-top: 16px;
+    margin-top: auto;
+  }
+
+  /* Sembunyikan tombol tutup dalam-drawer di desktop (pakai hamburger). */
+  .sidebar .sidebar-head .nav-toggle { display: none; }
+  /* Tidak ada latar gelap di desktop. */
   .drawer-backdrop { display: none !important; }
 }
 
-/* Di layar kecil, drawer tetap menumpang dengan latar (tap untuk menutup). */
+/* ====================== HP (drawer overlay) ====================== */
 @media (max-width: 899px) {
-  body.drawer-open { padding-left: 0; }
-}
-
-/* ---- Isi drawer ala portal: pencarian, seksi, menu ber-ikon ---- */
-.drawer-search {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 0 12px;
-  margin-bottom: 14px;
-  background: var(--c-bg);
-  border: 1.5px solid var(--c-border);
-  border-radius: 999px;
-}
-.drawer-search svg { color: var(--c-text-soft); flex-shrink: 0; }
-.drawer-search input {
-  border: none;
-  background: transparent;
-  padding: 10px 0;
-  font-size: 0.9rem;
-}
-.drawer-search input:focus { outline: none; box-shadow: none; }
-
-.drawer-section {
-  font-size: 0.72rem;
-  font-weight: 800;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--c-text-soft);
-  margin: 4px 8px 8px;
-}
-
-.drawer-links a {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-.drawer-links a svg { color: var(--c-sky-deep); flex-shrink: 0; }
-.drawer-links a:hover svg { color: var(--c-sky-deep); }
-.drawer-links a.active svg { color: #fff; }
-
-.drawer-empty {
-  color: var(--c-text-soft);
-  padding: 10px 14px;
-  font-size: 0.88rem;
+  body { padding-left: 0 !important; }
+  .sidebar {
+    width: var(--panel-w);
+    max-width: 84vw;
+    transform: translateX(-100%);
+    transition: transform 0.25s ease;
+    box-shadow: var(--shadow-lg);
+  }
+  body.drawer-open .sidebar { transform: translateX(0); }
+  /* Di HP semua label selalu tampil. */
+  .sidebar .nav-label,
+  .sidebar .brand span:last-child,
+  .sidebar .drawer-search,
+  .sidebar .drawer-section,
+  .sidebar .drawer-user { opacity: 1; }
 }
