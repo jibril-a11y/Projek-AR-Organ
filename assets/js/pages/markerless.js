@@ -1,6 +1,7 @@
 /*
   Halaman AR Markerless.
   Pilih organ + kamera, lalu tampilkan model 3D di atas kamera tanpa marker.
+  Model bisa digeser, diperbesar/diperkecil, diputar, dan direset.
 */
 import { requireAuth } from "../modules/auth.js";
 import { renderNav } from "../modules/nav.js";
@@ -13,28 +14,59 @@ import { el, toast } from "../modules/ui.js";
   if (!profile) return;
   renderNav(profile, "ar-markerless.html");
 
+  const stage = document.querySelector(".ar-stage");
   const container = document.getElementById("ar-container");
   const setup = document.getElementById("ar-setup");
   const controls = document.getElementById("ar-controls");
   const status = document.getElementById("ar-status");
-  let stopFn = null;
+  let controller = null;
+  let modelBar = null;
 
   const organs = await db.listOrgans().catch(() => []);
+
+  function removeModelBar() {
+    if (modelBar) {
+      modelBar.remove();
+      modelBar = null;
+    }
+  }
 
   function showSetup() {
     setup.classList.remove("hidden");
     controls.classList.add("hidden");
     status.classList.add("hidden");
-    if (stopFn) {
-      stopFn();
-      stopFn = null;
+    removeModelBar();
+    if (controller) {
+      controller.stop();
+      controller = null;
     }
   }
 
-  // Tombol berhenti (selalu ada, kini bisa diklik karena z-index diperbaiki).
+  // Tombol berhenti (z-index sudah diperbaiki sehingga bisa diklik).
   controls.appendChild(
     el("button", { class: "btn btn-danger btn-sm", text: "Berhenti", onClick: showSetup })
   );
+
+  // Bilah kontrol model di bawah layar.
+  function buildModelBar() {
+    removeModelBar();
+    const modeBtn = el("button", {
+      class: "btn btn-primary btn-sm",
+      text: "Mode: Geser",
+      onClick: () => {
+        const m = controller.getMode() === "move" ? "rotate" : "move";
+        controller.setMode(m);
+        modeBtn.textContent = m === "move" ? "Mode: Geser" : "Mode: Putar";
+      },
+    });
+    modelBar = el("div", { class: "ar-model-controls" }, [
+      modeBtn,
+      el("button", { class: "btn btn-ghost btn-sm", text: "-", title: "Perkecil", onClick: () => controller.zoomBy(0.85) }),
+      el("button", { class: "btn btn-ghost btn-sm", text: "+", title: "Perbesar", onClick: () => controller.zoomBy(1.15) }),
+      el("button", { class: "btn btn-accent btn-sm", text: "Reset", onClick: () => controller.reset() }),
+    ]);
+    stage.appendChild(modelBar);
+  }
 
   const organSelect = el(
     "select",
@@ -73,12 +105,13 @@ import { el, toast } from "../modules/ui.js";
         controls.classList.remove("hidden");
         status.classList.remove("hidden");
         status.textContent = "Memuat model...";
-        stopFn = await startMarkerless({
+        controller = await startMarkerless({
           container,
           organ,
           deviceId: camSelect.value && !camSelect.value.startsWith("Tekan") ? camSelect.value : null,
         });
-        status.innerHTML = '<span class="scan-hint"><span class="scan-dot"></span>Geser untuk memutar model</span>';
+        buildModelBar();
+        status.innerHTML = '<span class="scan-hint"><span class="scan-dot"></span>Geser untuk pindah, cubit untuk ukuran</span>';
       } catch (e) {
         toast(e.message, "error");
         showSetup();
@@ -93,6 +126,7 @@ import { el, toast } from "../modules/ui.js";
     el("div", { class: "card" }, [
       el("h2", { text: "AR Markerless" }),
       el("p", { class: "muted", text: "Tidak perlu marker. Pilih organ dan kamera lalu mulai." }),
+      el("p", { class: "muted", text: "Setelah mulai: geser untuk memindahkan, cubit dua jari untuk ukuran, tombol Mode untuk memutar." }),
       el("div", { class: "field mt-16" }, [el("label", { text: "Organ" }), organSelect]),
       el("div", { class: "field" }, [el("label", { text: "Kamera" }), camSelect]),
       el("div", { class: "flex gap-8" }, [detectBtn, startBtn]),

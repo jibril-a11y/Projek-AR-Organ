@@ -2,8 +2,11 @@
   Modul AR Markerless.
 
   Tidak memerlukan marker. Kamera ditampilkan sebagai latar belakang, lalu
-  model 3D organ ditampilkan melayang di depannya. Pengguna bisa memutar
-  model dengan menggeser jari/mouse dan mengubah ukuran dengan scroll/cubit.
+  model 3D organ ditampilkan di depannya. Pengguna bisa:
+    - Memindahkan model ke mana saja (geser satu jari / dua jari, atau mouse).
+    - Memperbesar/memperkecil (cubit dua jari, scroll, atau tombol +/-).
+    - Memutar model (mode Putar).
+    - Reset posisi/ukuran.
 
   Memakai Three.js + GLTFLoader dari CDN.
 */
@@ -48,6 +51,11 @@ export async function listCameras() {
     .map((d, i) => ({ deviceId: d.deviceId, label: d.label || `Kamera ${i + 1}` }));
 }
 
+const MIN_SCALE = 0.2;
+const MAX_SCALE = 6;
+const CAM_Z = 4;
+const FOV = 50;
+
 export async function startMarkerless({ container, organ, deviceId }) {
   // 1. Ambil stream kamera.
   let stream;
@@ -73,8 +81,8 @@ export async function startMarkerless({ container, organ, deviceId }) {
   videoTexture.colorSpace = THREE.SRGBColorSpace;
   scene.background = videoTexture;
 
-  const camera = new THREE.PerspectiveCamera(50, width / height, 0.1, 100);
-  camera.position.set(0, 0, 4);
+  const camera = new THREE.PerspectiveCamera(FOV, width / height, 0.1, 100);
+  camera.position.set(0, 0, CAM_Z);
 
   const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
   renderer.setSize(width, height);
@@ -112,8 +120,7 @@ export async function startMarkerless({ container, organ, deviceId }) {
       const center = box.getCenter(new THREE.Vector3());
       model.position.sub(center);
       const maxDim = Math.max(size.x, size.y, size.z) || 1;
-      const scale = 2 / maxDim;
-      model.scale.setScalar(scale);
+      model.scale.setScalar(2 / maxDim);
       group.add(model);
     } catch (e) {
       addFallback();
@@ -122,59 +129,153 @@ export async function startMarkerless({ container, organ, deviceId }) {
     addFallback();
   }
 
-  // 4. Interaksi: geser untuk memutar, scroll/cubit untuk skala.
+  // ---------- 4. Interaksi ----------
+  let mode = "move"; // "move" (geser) atau "rotate" (putar)
+  let userScale = 1;
+  let autoRotate = false;
   let dragging = false;
   let lastX = 0;
   let lastY = 0;
-  let userScale = 1;
 
-  const onDown = (x, y) => {
-    dragging = true;
-    lastX = x;
-    lastY = y;
-  };
-  const onMove = (x, y) => {
-    if (!dragging) return;
-    group.rotation.y += (x - lastX) * 0.01;
-    group.rotation.x += (y - lastY) * 0.01;
-    lastX = x;
-    lastY = y;
-  };
-  const onUp = () => (dragging = false);
+  // Dua jari (cubit + geser).
+  let pinchActive = false;
+  let lastPinchDist = 0;
+  let lastMidX = 0;
+  let lastMidY = 0;
+
+  // Berapa satuan dunia per piksel pada bidang model (untuk geser 1:1).
+  function worldPerPixel() {
+    const h = container.clientHeight || height;
+    const dist = camera.position.z - group.position.z;
+    return (2 * dist * Math.tan((FOV / 2) * (Math.PI / 180))) / h;
+  }
+
+  function applyScale() {
+    userScale = Math.min(MAX_SCALE, Math.max(MIN_SCALE, userScale));
+    group.scale.setScalar(userScale);
+  }
+
+  function moveByPixels(dx, dy) {
+    const k = worldPerPixel();
+    group.position.x += dx * k;
+    group.position.y -= dy * k; // sumbu Y layar terbalik
+  }
+
+  function rotateByPixels(dx, dy) {
+    group.rotation.y += dx * 0.01;
+    group.rotation.x += dy * 0.01;
+  }
+
+  function applyDrag(dx, dy) {
+    if (mode === "rotate") rotateByPixels(dx, dy);
+    else moveByPixels(dx, dy);
+  }
 
   const dom = renderer.domElement;
-  dom.addEventListener("mousedown", (e) => onDown(e.clientX, e.clientY));
-  window.addEventListener("mousemove", (e) => onMove(e.clientX, e.clientY));
-  window.addEventListener("mouseup", onUp);
-  dom.addEventListener("touchstart", (e) =>
-    onDown(e.touches[0].clientX, e.touches[0].clientY)
-  );
-  dom.addEventListener("touchmove", (e) => {
-    onMove(e.touches[0].clientX, e.touches[0].clientY);
-  });
-  dom.addEventListener("touchend", onUp);
-  dom.addEventListener(
-    "wheel",
-    (e) => {
-      e.preventDefault();
-      userScale *= e.deltaY < 0 ? 1.08 : 0.92;
-      userScale = Math.min(4, Math.max(0.3, userScale));
-      group.scale.setScalar(userScale);
-    },
-    { passive: false }
-  );
+  dom.style.touchAction = "none"; // cegah browser scroll saat menyentuh model
 
-  // 5. Loop animasi.
+  // -- Mouse (desktop) --
+  const onMouseDown = (e) => {
+    dragging = true;
+    lastX = e.clientX;
+    lastY = e.clientY;
+  };
+  const onMouseMove = (e) => {
+    if (!dragging) return;
+    applyDrag(e.clientX - lastX, e.clientY - lastY);
+    lastX = e.clientX;
+    lastY = e.clientY;
+  };
+  const onMouseUp = () => (dragging = false);
+  dom.addEventListener("mousedown", onMouseDown);
+  window.addEventListener("mousemove", onMouseMove);
+  window.addEventListener("mouseup", onMouseUp);
+
+  const onWheel = (e) => {
+    e.preventDefault();
+    userScale *= e.deltaY < 0 ? 1.08 : 0.92;
+    applyScale();
+  };
+  dom.addEventListener("wheel", onWheel, { passive: false });
+
+  // -- Sentuh (HP) --
+  function touchDist(t) {
+    const dx = t[0].clientX - t[1].clientX;
+    const dy = t[0].clientY - t[1].clientY;
+    return Math.hypot(dx, dy);
+  }
+  function touchMid(t) {
+    return {
+      x: (t[0].clientX + t[1].clientX) / 2,
+      y: (t[0].clientY + t[1].clientY) / 2,
+    };
+  }
+
+  const onTouchStart = (e) => {
+    if (e.touches.length === 1) {
+      dragging = true;
+      pinchActive = false;
+      lastX = e.touches[0].clientX;
+      lastY = e.touches[0].clientY;
+    } else if (e.touches.length === 2) {
+      dragging = false;
+      pinchActive = true;
+      lastPinchDist = touchDist(e.touches);
+      const m = touchMid(e.touches);
+      lastMidX = m.x;
+      lastMidY = m.y;
+    }
+  };
+  const onTouchMove = (e) => {
+    e.preventDefault();
+    if (e.touches.length === 2 && pinchActive) {
+      // Cubit untuk skala.
+      const d = touchDist(e.touches);
+      if (lastPinchDist > 0) {
+        userScale *= d / lastPinchDist;
+        applyScale();
+      }
+      lastPinchDist = d;
+      // Geser titik tengah dua jari untuk memindahkan model.
+      const m = touchMid(e.touches);
+      moveByPixels(m.x - lastMidX, m.y - lastMidY);
+      lastMidX = m.x;
+      lastMidY = m.y;
+    } else if (e.touches.length === 1 && dragging) {
+      // Satu jari: geser atau putar sesuai mode.
+      applyDrag(e.touches[0].clientX - lastX, e.touches[0].clientY - lastY);
+      lastX = e.touches[0].clientX;
+      lastY = e.touches[0].clientY;
+    }
+  };
+  const onTouchEnd = (e) => {
+    if (e.touches.length === 0) {
+      dragging = false;
+      pinchActive = false;
+    } else if (e.touches.length === 1) {
+      // Dari dua jari turun ke satu jari: lanjut sebagai geser/putar.
+      pinchActive = false;
+      dragging = true;
+      lastX = e.touches[0].clientX;
+      lastY = e.touches[0].clientY;
+    }
+  };
+  dom.addEventListener("touchstart", onTouchStart, { passive: false });
+  dom.addEventListener("touchmove", onTouchMove, { passive: false });
+  dom.addEventListener("touchend", onTouchEnd);
+  dom.addEventListener("touchcancel", onTouchEnd);
+
+  // ---------- 5. Loop animasi ----------
   let running = true;
   function loop() {
     if (!running) return;
-    if (!dragging) group.rotation.y += 0.005; // putar pelan otomatis
+    if (autoRotate && !dragging && !pinchActive) group.rotation.y += 0.005;
     renderer.render(scene, camera);
     requestAnimationFrame(loop);
   }
   loop();
 
-  // 6. Tanggap ukuran layar.
+  // ---------- 6. Tanggap ukuran layar ----------
   const onResize = () => {
     const w = container.clientWidth;
     const h = container.clientHeight;
@@ -184,18 +285,39 @@ export async function startMarkerless({ container, organ, deviceId }) {
   };
   window.addEventListener("resize", onResize);
 
-  // Fungsi penghentian.
-  return function stop() {
-    running = false;
-    window.removeEventListener("resize", onResize);
-    window.removeEventListener("mousemove", onMove);
-    window.removeEventListener("mouseup", onUp);
-    try {
-      stream.getTracks().forEach((t) => t.stop());
-    } catch (e) {
-      /* abaikan */
-    }
-    renderer.dispose();
-    container.innerHTML = "";
+  // ---------- Controller yang dikembalikan ----------
+  return {
+    setMode(m) {
+      mode = m === "rotate" ? "rotate" : "move";
+      return mode;
+    },
+    getMode() {
+      return mode;
+    },
+    toggleAutoRotate() {
+      autoRotate = !autoRotate;
+      return autoRotate;
+    },
+    zoomBy(factor) {
+      userScale *= factor;
+      applyScale();
+    },
+    reset() {
+      group.position.set(0, 0, 0);
+      group.rotation.set(0, 0, 0);
+      userScale = 1;
+      applyScale();
+    },
+    stop() {
+      running = false;
+      window.removeEventListener("resize", onResize);
+      window.removeEventListener("mousemove", onMouseMove);
+      window.removeEventListener("mouseup", onMouseUp);
+      try {
+        stream.getTracks().forEach((t) => t.stop());
+      } catch (e) {}
+      renderer.dispose();
+      container.innerHTML = "";
+    },
   };
 }

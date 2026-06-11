@@ -28,7 +28,7 @@ import { el, toast } from "../modules/ui.js";
     return;
   }
 
-  const grid = el("div", { style: "display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:20px", class: "mt-24" });
+  const grid = el("div", { class: "card-grid mt-24" });
   organs.forEach((organ) => {
     const card = el("div", { class: "card" }, [
       el("div", { class: "flex center gap-16" }, [
