@@ -347,3 +347,19 @@ input:focus, select:focus, textarea:focus {
   z-index: 110;
 }
 .drawer-backdrop.open { opacity: 1; visibility: visible; }
+
+/* ---- Drawer mendorong konten (layar lebar), bukan memblokir ---- */
+body { transition: padding-left 0.25s ease; }
+
+@media (min-width: 900px) {
+  /* Saat drawer terbuka, konten utama bergeser ke kanan dan tetap bisa
+     dilihat serta diklik (mirip sidebar Claude). */
+  body.drawer-open { padding-left: 280px; }
+  /* Tidak ada latar gelap yang memblokir di layar lebar. */
+  .drawer-backdrop { display: none !important; }
+}
+
+/* Di layar kecil, drawer tetap menumpang dengan latar (tap untuk menutup). */
+@media (max-width: 899px) {
+  body.drawer-open { padding-left: 0; }
+}
