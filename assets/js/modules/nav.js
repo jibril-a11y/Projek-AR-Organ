@@ -17,7 +17,7 @@ const LINKS = [
   { href: "admin.html", label: "Ruang Admin", adminOnly: true },
 ];
 
-// Ikon panel (kotak dengan garis pemisah), mirip tombol sidebar.
+// Ikon hamburger (tiga garis).
 function panelIcon() {
   const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
   svg.setAttribute("viewBox", "0 0 24 24");
@@ -29,7 +29,9 @@ function panelIcon() {
   svg.setAttribute("stroke-linecap", "round");
   svg.setAttribute("stroke-linejoin", "round");
   svg.innerHTML =
-    '<rect x="3" y="4" width="18" height="16" rx="2"></rect><line x1="9" y1="4" x2="9" y2="20"></line>';
+    '<line x1="3" y1="6" x2="21" y2="6"></line>' +
+    '<line x1="3" y1="12" x2="21" y2="12"></line>' +
+    '<line x1="3" y1="18" x2="21" y2="18"></line>';
   return svg;
 }
 
@@ -101,10 +103,15 @@ export function renderNav(profile, activeHref) {
   const open = () => {
     drawer.classList.add("open");
     backdrop.classList.add("open");
+    document.body.classList.add("drawer-open");
+    // Beri tahu komponen yang peka ukuran (mis. kanvas AR) agar menyesuaikan.
+    setTimeout(() => window.dispatchEvent(new Event("resize")), 260);
   };
   const close = () => {
     drawer.classList.remove("open");
     backdrop.classList.remove("open");
+    document.body.classList.remove("drawer-open");
+    setTimeout(() => window.dispatchEvent(new Event("resize")), 260);
   };
   toggle.addEventListener("click", () =>
     drawer.classList.contains("open") ? close() : open()
