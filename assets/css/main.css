@@ -252,3 +252,98 @@ input:focus, select:focus, textarea:focus {
   .nav-user .chip { max-width: 120px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .btn { padding: 10px 16px; }
 }
+
+/* ============================================================
+   BILAH ATAS + DRAWER (NAVIGASI POP-UP)
+   ============================================================ */
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0 16px;
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--c-border);
+}
+
+.nav-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+  border-radius: 12px;
+  border: 1.5px solid var(--c-border);
+  background: var(--c-surface);
+  color: var(--c-ink);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.nav-toggle:hover {
+  border-color: var(--c-sky);
+  color: var(--c-sky-deep);
+}
+
+.drawer {
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: 280px;
+  max-width: 84vw;
+  background: var(--c-surface);
+  border-right: 1px solid var(--c-border);
+  box-shadow: var(--shadow-lg);
+  transform: translateX(-100%);
+  transition: transform 0.25s ease;
+  z-index: 120;
+  display: flex;
+  flex-direction: column;
+  padding: 16px;
+  overflow-y: auto;
+}
+.drawer.open { transform: translateX(0); }
+
+.drawer-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.drawer-links { display: flex; flex-direction: column; gap: 4px; }
+.drawer-links a {
+  padding: 12px 14px;
+  border-radius: 12px;
+  font-weight: 700;
+  color: var(--c-text-soft);
+  transition: all 0.15s ease;
+}
+.drawer-links a:hover { background: var(--c-sky-soft); color: var(--c-sky-deep); }
+.drawer-links a.active { background: var(--grad-primary); color: #fff; box-shadow: var(--shadow-sm); }
+
+.drawer-user {
+  margin-top: auto;
+  padding-top: 16px;
+  border-top: 1px solid var(--c-border);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.drawer-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(22, 49, 74, 0.45);
+  backdrop-filter: blur(2px);
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.25s ease;
+  z-index: 110;
+}
+.drawer-backdrop.open { opacity: 1; visibility: visible; }

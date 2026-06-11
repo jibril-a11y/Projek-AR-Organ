@@ -3,8 +3,8 @@
 .ar-stage {
   position: relative;
   width: 100%;
-  height: calc(100vh - 66px);
-  height: calc(100dvh - 66px); /* dvh: aman terhadap bilah browser HP */
+  height: calc(100vh - 56px);
+  height: calc(100dvh - 56px); /* dvh: aman terhadap bilah browser HP */
   overflow: hidden;
   background: #0a1622;
 }
@@ -77,10 +77,10 @@
    Responsif HP untuk halaman AR
    ============================================================ */
 @media (max-width: 720px) {
-  /* Navbar di HP bisa jadi dua baris, sesuaikan tinggi panggung. */
+  /* Bilah atas tetap satu baris 56px karena tautan kini di drawer. */
   .ar-stage {
-    height: calc(100vh - 112px);
-    height: calc(100dvh - 112px);
+    height: calc(100vh - 56px);
+    height: calc(100dvh - 56px);
   }
   .ar-controls { top: 12px; right: 12px; }
   .ar-status { top: 12px; left: 12px; font-size: 0.78rem; padding: 6px 12px; }
