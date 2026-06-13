@@ -31,36 +31,93 @@ export function parseOrganPayload(text) {
   return null;
 }
 
-// Hasilkan QR sebagai PNG blob lengkap dengan bingkai dan label nama organ,
-// siap diunggah/dicetak sebagai marker.
+// Hasilkan gambar marker KAYA FITUR (agar mudah dilacak MindAR) yang di
+// tengahnya tetap memuat QR (agar bisa dipindai). Satu lembar untuk dua mode.
 export async function makeQrMarkerBlob(payload, label) {
-  const S = 600;
+  const S = 700;
   const canvas = document.createElement("canvas");
   canvas.width = S;
   canvas.height = S;
   const ctx = canvas.getContext("2d");
 
-  // Latar putih + bingkai.
   ctx.fillStyle = "#ffffff";
   ctx.fillRect(0, 0, S, S);
+
+  const colors = ["#32a3cd", "#3253cd", "#2fd0aa", "#16314a"];
+  const rnd = (a, b) => a + Math.random() * (b - a);
+
+  // Pola acak penuh fitur (membantu pelacakan MindAR).
+  for (let i = 0; i < 48; i++) {
+    ctx.fillStyle = colors[Math.floor(Math.random() * colors.length)];
+    ctx.globalAlpha = rnd(0.35, 0.9);
+    const t = Math.floor(Math.random() * 3);
+    const x = rnd(24, S - 24), y = rnd(24, S - 24), r = rnd(12, 46);
+    if (t === 0) {
+      ctx.beginPath();
+      ctx.arc(x, y, r, 0, Math.PI * 2);
+      ctx.fill();
+    } else if (t === 1) {
+      ctx.save();
+      ctx.translate(x, y);
+      ctx.rotate(rnd(0, Math.PI));
+      ctx.fillRect(-r / 2, -r / 2, r, r);
+      ctx.restore();
+    } else {
+      ctx.beginPath();
+      ctx.moveTo(x, y - r);
+      ctx.lineTo(x + r, y + r);
+      ctx.lineTo(x - r, y + r);
+      ctx.closePath();
+      ctx.fill();
+    }
+  }
+  ctx.globalAlpha = 1;
+
+  // Penanda sudut yang berbeda warna (titik fitur kuat dan unik).
+  const corner = (cx, cy, col) => {
+    ctx.fillStyle = col;
+    ctx.fillRect(cx, cy, 54, 54);
+    ctx.fillStyle = "#fff";
+    ctx.fillRect(cx + 14, cy + 14, 26, 26);
+    ctx.fillStyle = col;
+    ctx.fillRect(cx + 22, cy + 22, 10, 10);
+  };
+  corner(24, 24, "#16314a");
+  corner(S - 78, 24, "#32a3cd");
+  corner(24, S - 78, "#2fd0aa");
+  corner(S - 78, S - 78, "#3253cd");
+
+  // Bingkai luar.
   ctx.strokeStyle = "#16314a";
   ctx.lineWidth = 10;
   ctx.strokeRect(8, 8, S - 16, S - 16);
 
+  // Kotak putih (quiet zone) agar QR tetap terbaca.
+  const boxS = 360;
+  const boxX = (S - boxS) / 2;
+  const boxY = (S - boxS) / 2 - 20;
+  ctx.fillStyle = "#ffffff";
+  ctx.fillRect(boxX, boxY, boxS, boxS);
+  ctx.strokeStyle = "#16314a";
+  ctx.lineWidth = 4;
+  ctx.strokeRect(boxX, boxY, boxS, boxS);
+
   // QR di tengah.
   const qrCanvas = document.createElement("canvas");
   await QRCode.toCanvas(qrCanvas, payload, {
-    width: 440,
+    width: 320,
     margin: 1,
     color: { dark: "#16314a", light: "#ffffff" },
   });
-  ctx.drawImage(qrCanvas, (S - 440) / 2, 70, 440, 440);
+  ctx.drawImage(qrCanvas, boxX + 20, boxY + 20, 320, 320);
 
   // Label nama organ.
   ctx.fillStyle = "#16314a";
-  ctx.font = "bold 40px Nunito, Arial, sans-serif";
+  ctx.fillRect(0, S - 72, S, 72);
+  ctx.fillStyle = "#ffffff";
+  ctx.font = "bold 38px Nunito, Arial, sans-serif";
   ctx.textAlign = "center";
-  ctx.fillText((label || "ORGAN").toUpperCase(), S / 2, S - 40);
+  ctx.fillText((label || "ORGAN").toUpperCase(), S / 2, S - 28);
 
   return await new Promise((resolve) => canvas.toBlob(resolve, "image/png"));
 }
