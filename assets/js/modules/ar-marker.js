@@ -85,7 +85,7 @@ export async function startAR({ container, overlay, status, deviceId }) {
     );
   }
 
-  const mindUrl = getMindUrl();
+  const mindUrl = getMindUrl() + "?t=" + Date.now(); // anti-cache
 
   // Pengecekan: pastikan targets.mind benar-benar dapat diakses dari Supabase.
   // Bila gagal, hampir pasti masalah konfigurasi Supabase (bucket belum Public

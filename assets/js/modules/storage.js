@@ -34,7 +34,9 @@ export async function uploadMind(blob) {
   return upload(BUCKET_MARKERS, "targets.mind", blob, "application/octet-stream");
 }
 
-export async function getMindUrl() {
+export function getMindUrl() {
+  // getPublicUrl bersifat sinkron, jadi fungsi ini mengembalikan string URL
+  // langsung (bukan Promise) agar bisa dipakai apa adanya oleh MindAR.
   const { data } = supabase.storage.from(BUCKET_MARKERS).getPublicUrl("targets.mind");
   return data.publicUrl;
 }
