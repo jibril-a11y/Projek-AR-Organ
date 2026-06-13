@@ -86,6 +86,23 @@ export async function startAR({ container, overlay, status, deviceId }) {
   }
 
   const mindUrl = getMindUrl();
+
+  // Pengecekan: pastikan targets.mind benar-benar dapat diakses dari Supabase.
+  // Bila gagal, hampir pasti masalah konfigurasi Supabase (bucket belum Public
+  // atau file belum diunggah/dikompilasi), bukan masalah pelacakan.
+  try {
+    const res = await fetch(mindUrl, { method: "GET", cache: "no-store" });
+    if (!res.ok) throw new Error("HTTP " + res.status);
+    const buf = await res.arrayBuffer();
+    if (!buf || buf.byteLength < 100) throw new Error("file kosong");
+  } catch (e) {
+    throw new Error(
+      "File targets.mind tidak dapat diakses dari Supabase (" +
+        (e.message || e) +
+        "). Pastikan bucket 'markers' berstatus Public dan targets.mind sudah diunggah lewat Ruang Guru > Kompilasi Marker."
+    );
+  }
+
   const maxTrack = tracked.length;
   const entities = tracked.map(buildEntity).join("\n");
 
