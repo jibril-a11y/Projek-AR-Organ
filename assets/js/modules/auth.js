@@ -19,7 +19,15 @@ export async function signUp({ email, password, fullName, role }) {
   return data;
 }
 
-export async function signIn({ email, password }) {
+// Simpan preferensi "Ingat saya" sebelum proses masuk.
+export function setRemember(remember) {
+  try {
+    localStorage.setItem("organ_remember", remember ? "1" : "0");
+  } catch (e) {}
+}
+
+export async function signIn({ email, password, remember = true }) {
+  setRemember(remember);
   const { data, error } = await supabase.auth.signInWithPassword({
     email,
     password,
