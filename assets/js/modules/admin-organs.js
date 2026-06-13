@@ -4,17 +4,20 @@
 */
 import * as db from "./db.js";
 import * as storage from "./storage.js";
-import { organQrPayload, makeQrMarkerBlob } from "./qr.js";
+import { organQrPayload, makeMarkerImageBlob, makePlainQrDataUrl } from "./qr.js";
 import { el, toast, confirmDialog, openModal } from "./ui.js";
 
 let listRoot = null;
 
-// Buat QR marker untuk organ lalu simpan URL-nya.
-async function generateQrFor(organ) {
-  const payload = organQrPayload(organ.id);
-  const blob = await makeQrMarkerBlob(payload, organ.name);
-  const url = await storage.uploadMarkerImage(blob, "qr");
-  return db.updateOrgan(organ.id, { marker_image_url: url, qr_data: payload });
+// Buat gambar marker MindAR (kaya fitur, tanpa QR) lalu simpan URL-nya.
+// QR untuk mode Scan dibuat terpisah saat diunduh.
+async function generateMarkerFor(organ) {
+  const blob = await makeMarkerImageBlob(organ.name);
+  const url = await storage.uploadMarkerImage(blob, "marker");
+  return db.updateOrgan(organ.id, {
+    marker_image_url: url,
+    qr_data: organQrPayload(organ.id),
+  });
 }
 
 function organCard(organ) {
@@ -31,7 +34,7 @@ function organCard(organ) {
       el("span", { class: "chip sky", text: `${(organ.descriptions || []).length} deskripsi` }),
       el("span", { class: "chip mint", text: `${(organ.functions || []).length} fungsi` }),
       el("span", { class: "chip", text: organ.model_url ? "Ada model" : "Tanpa model" }),
-      el("span", { class: "chip", text: organ.marker_image_url ? "QR siap" : "Tanpa QR" }),
+      el("span", { class: "chip", text: organ.marker_image_url ? "Marker siap" : "Tanpa marker" }),
     ]),
     el("div", { class: "flex gap-8 mt-16" }, [
       el("button", { class: "btn btn-primary btn-sm", text: "Kelola", onClick: () => openEditor(organ.id) }),
@@ -192,26 +195,42 @@ async function openEditor(id) {
   }
   content.appendChild(modelSection);
 
-  // --- QR marker ---
-  const qrSection = el("div", { class: "editor-section" }, [el("h4", { text: "QR Marker" })]);
+  // --- Marker AR (MindAR) & QR (Scan) ---
+  const qrSection = el("div", { class: "editor-section" }, [el("h4", { text: "Marker AR & QR" })]);
   if (organ.marker_image_url) {
     qrSection.append(
+      el("p", { class: "muted", text: "Gambar marker untuk mode AR Marker (MindAR):" }),
       el("img", { class: "marker-thumb", src: organ.marker_image_url, style: "max-width:240px" }),
       el("div", { class: "flex gap-8 mt-8" }, [
-        el("a", { class: "btn btn-ghost btn-sm", href: organ.marker_image_url, download: "", target: "_blank", text: "Unduh QR" }),
+        el("a", { class: "btn btn-ghost btn-sm", href: organ.marker_image_url, download: "", target: "_blank", text: "Unduh Marker AR" }),
+        el("button", {
+          class: "btn btn-ghost btn-sm",
+          text: "Unduh QR (Scan)",
+          onClick: async () => {
+            try {
+              const dataUrl = await makePlainQrDataUrl(organQrPayload(organ.id));
+              const a = el("a", { href: dataUrl, download: `qr-${organ.name}.png` });
+              document.body.appendChild(a);
+              a.click();
+              a.remove();
+            } catch (e) {
+              toast(e.message, "error");
+            }
+          },
+        }),
       ])
     );
   } else {
-    qrSection.appendChild(el("p", { class: "muted", text: "QR belum dibuat." }));
+    qrSection.appendChild(el("p", { class: "muted", text: "Marker belum dibuat." }));
   }
   qrSection.appendChild(
     el("button", {
       class: "btn btn-accent btn-sm mt-8",
-      text: "Buat ulang QR",
+      text: "Buat ulang marker",
       onClick: async () => {
         try {
-          await generateQrFor(organ);
-          toast("QR dibuat", "success");
+          await generateMarkerFor(organ);
+          toast("Marker dibuat. Jangan lupa kompilasi/unggah ulang targets.mind.", "success");
           modal.close();
           render();
         } catch (e) {
@@ -243,7 +262,7 @@ export async function initAdminOrgans(formRoot, listContainer) {
   formRoot.appendChild(
     el("div", { class: "card" }, [
       el("h3", { text: "Tambah Organ" }),
-      el("p", { class: "muted", text: "QR marker otomatis dibuat untuk setiap organ baru." }),
+      el("p", { class: "muted", text: "Marker AR otomatis dibuat untuk setiap organ baru." }),
       el("div", { class: "inline-form" }, [
         nameInput,
         el("button", {
@@ -254,9 +273,9 @@ export async function initAdminOrgans(formRoot, listContainer) {
             if (!v) return toast("Isi nama organ", "error");
             try {
               const organ = await db.createOrgan(v);
-              await generateQrFor(organ); // QR otomatis
+              await generateMarkerFor(organ); // marker MindAR otomatis
               nameInput.value = "";
-              toast("Organ + QR dibuat", "success");
+              toast("Organ + marker dibuat", "success");
               render();
             } catch (e) {
               toast(e.message, "error");

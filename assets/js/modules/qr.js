@@ -31,9 +31,9 @@ export function parseOrganPayload(text) {
   return null;
 }
 
-// Hasilkan gambar marker KAYA FITUR (agar mudah dilacak MindAR) yang di
-// tengahnya tetap memuat QR (agar bisa dipindai). Satu lembar untuk dua mode.
-export async function makeQrMarkerBlob(payload, label) {
+// Marker KAYA FITUR tanpa QR, khusus untuk pelacakan MindAR (mode AR Marker).
+// Pola acak + penanda sudut + nama organ memberi banyak titik fitur unik.
+export async function makeMarkerImageBlob(label) {
   const S = 700;
   const canvas = document.createElement("canvas");
   canvas.width = S;
@@ -45,13 +45,11 @@ export async function makeQrMarkerBlob(payload, label) {
 
   const colors = ["#32a3cd", "#3253cd", "#2fd0aa", "#16314a"];
   const rnd = (a, b) => a + Math.random() * (b - a);
-
-  // Pola acak penuh fitur (membantu pelacakan MindAR).
-  for (let i = 0; i < 48; i++) {
+  for (let i = 0; i < 70; i++) {
     ctx.fillStyle = colors[Math.floor(Math.random() * colors.length)];
-    ctx.globalAlpha = rnd(0.35, 0.9);
+    ctx.globalAlpha = rnd(0.35, 0.95);
     const t = Math.floor(Math.random() * 3);
-    const x = rnd(24, S - 24), y = rnd(24, S - 24), r = rnd(12, 46);
+    const x = rnd(24, S - 24), y = rnd(24, S - 24), r = rnd(14, 52);
     if (t === 0) {
       ctx.beginPath();
       ctx.arc(x, y, r, 0, Math.PI * 2);
@@ -73,53 +71,72 @@ export async function makeQrMarkerBlob(payload, label) {
   }
   ctx.globalAlpha = 1;
 
-  // Penanda sudut yang berbeda warna (titik fitur kuat dan unik).
   const corner = (cx, cy, col) => {
     ctx.fillStyle = col;
-    ctx.fillRect(cx, cy, 54, 54);
+    ctx.fillRect(cx, cy, 56, 56);
     ctx.fillStyle = "#fff";
-    ctx.fillRect(cx + 14, cy + 14, 26, 26);
+    ctx.fillRect(cx + 14, cy + 14, 28, 28);
     ctx.fillStyle = col;
-    ctx.fillRect(cx + 22, cy + 22, 10, 10);
+    ctx.fillRect(cx + 23, cy + 23, 10, 10);
   };
-  corner(24, 24, "#16314a");
-  corner(S - 78, 24, "#32a3cd");
-  corner(24, S - 78, "#2fd0aa");
-  corner(S - 78, S - 78, "#3253cd");
+  corner(20, 20, "#16314a");
+  corner(S - 76, 20, "#32a3cd");
+  corner(20, S - 76, "#2fd0aa");
+  corner(S - 76, S - 76, "#3253cd");
 
-  // Bingkai luar.
   ctx.strokeStyle = "#16314a";
   ctx.lineWidth = 10;
   ctx.strokeRect(8, 8, S - 16, S - 16);
 
-  // Kotak putih (quiet zone) agar QR tetap terbaca.
-  const boxS = 360;
-  const boxX = (S - boxS) / 2;
-  const boxY = (S - boxS) / 2 - 20;
+  // Pita nama organ di tengah (kontras tinggi, membantu pelacakan).
+  ctx.fillStyle = "#16314a";
+  ctx.fillRect(70, S / 2 - 60, S - 140, 120);
   ctx.fillStyle = "#ffffff";
-  ctx.fillRect(boxX, boxY, boxS, boxS);
-  ctx.strokeStyle = "#16314a";
-  ctx.lineWidth = 4;
-  ctx.strokeRect(boxX, boxY, boxS, boxS);
+  ctx.font = "bold 52px Nunito, Arial, sans-serif";
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.fillText((label || "ORGAN").toUpperCase(), S / 2, S / 2);
+  ctx.textBaseline = "alphabetic";
 
-  // QR di tengah.
+  return await new Promise((resolve) => canvas.toBlob(resolve, "image/png"));
+}
+
+// QR polos (dengan label) untuk mode Scan QR. Dipisah dari marker MindAR.
+export async function makePlainQrBlob(payload, label) {
+  const S = 600;
+  const canvas = document.createElement("canvas");
+  canvas.width = S;
+  canvas.height = S;
+  const ctx = canvas.getContext("2d");
+  ctx.fillStyle = "#ffffff";
+  ctx.fillRect(0, 0, S, S);
+  ctx.strokeStyle = "#16314a";
+  ctx.lineWidth = 10;
+  ctx.strokeRect(8, 8, S - 16, S - 16);
+
   const qrCanvas = document.createElement("canvas");
   await QRCode.toCanvas(qrCanvas, payload, {
-    width: 320,
+    width: 440,
     margin: 1,
     color: { dark: "#16314a", light: "#ffffff" },
   });
-  ctx.drawImage(qrCanvas, boxX + 20, boxY + 20, 320, 320);
+  ctx.drawImage(qrCanvas, (S - 440) / 2, 60, 440, 440);
 
-  // Label nama organ.
   ctx.fillStyle = "#16314a";
-  ctx.fillRect(0, S - 72, S, 72);
-  ctx.fillStyle = "#ffffff";
   ctx.font = "bold 38px Nunito, Arial, sans-serif";
   ctx.textAlign = "center";
-  ctx.fillText((label || "ORGAN").toUpperCase(), S / 2, S - 28);
+  ctx.fillText((label || "ORGAN").toUpperCase(), S / 2, S - 36);
 
   return await new Promise((resolve) => canvas.toBlob(resolve, "image/png"));
+}
+
+// QR sebagai data URL untuk diunduh cepat.
+export async function makePlainQrDataUrl(payload) {
+  return await QRCode.toDataURL(payload, {
+    width: 600,
+    margin: 2,
+    color: { dark: "#16314a", light: "#ffffff" },
+  });
 }
 
 // Pemindai QR berbasis kamera. Membungkus html5-qrcode.
