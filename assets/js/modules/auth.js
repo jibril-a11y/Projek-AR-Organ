@@ -7,9 +7,9 @@
 import { supabase } from "../config/supabaseClient.js";
 import { EDITOR_ROLES } from "../config/config.js";
 
-// Daftar akun baru. role hanya boleh 'mahasiswa' atau 'guru' dari sisi klien.
+// Daftar akun baru. role hanya boleh 'siswa' atau 'guru' dari sisi klien.
 export async function signUp({ email, password, fullName, role }) {
-  const safeRole = role === "guru" ? "guru" : "mahasiswa";
+  const safeRole = role === "guru" ? "guru" : "siswa";
   const { data, error } = await supabase.auth.signUp({
     email,
     password,
@@ -55,7 +55,7 @@ export async function getProfile() {
     .select("id, full_name, role")
     .eq("id", session.user.id)
     .single();
-  if (error) return { id: session.user.id, full_name: null, role: "mahasiswa" };
+  if (error) return { id: session.user.id, full_name: null, role: "siswa" };
   return data;
 }
 

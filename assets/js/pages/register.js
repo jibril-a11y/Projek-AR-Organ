@@ -1,6 +1,6 @@
 /*
   Halaman Pendaftaran.
-  Peran yang bisa dipilih: mahasiswa atau guru. Admin ditetapkan terpisah.
+  Peran yang bisa dipilih: siswa atau guru. Admin ditetapkan terpisah.
 */
 import { signUp, getSession } from "../modules/auth.js";
 import { el, toast } from "../modules/ui.js";
@@ -15,7 +15,7 @@ const fullName = el("input", { type: "text", placeholder: "Nama lengkap" });
 const email = el("input", { type: "email", placeholder: "email@contoh.com" });
 const password = el("input", { type: "password", placeholder: "Minimal 6 karakter" });
 const role = el("select", {}, [
-  el("option", { value: "mahasiswa", text: "Mahasiswa" }),
+  el("option", { value: "siswa", text: "Siswa" }),
   el("option", { value: "guru", text: "Guru" }),
 ]);
 
